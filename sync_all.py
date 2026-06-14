@@ -1004,7 +1004,7 @@ function applyPreset(preset) {
   if (preset.month) {
     const targetMonth = String(preset.month).padStart(2, '0');
     startIdx = allDates.findIndex(d => d.startsWith('2026-' + targetMonth));
-    endIdx = allDates.findLastIndex(d => d.startsWith('2026-' + targetMonth));
+    endIdx = -1; for (let i = total - 1; i >= 0; i--) { if (allDates[i].startsWith('2026-' + targetMonth)) { endIdx = i; break; } }
     if (startIdx === -1) startIdx = 0;
     if (endIdx === -1) endIdx = total - 1;
   } else if (preset.days >= 99999) { startIdx = 0; endIdx = total - 1; }
