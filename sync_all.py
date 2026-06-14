@@ -875,8 +875,7 @@ h1{font-size:20px;text-align:center;margin-bottom:4px;color:#1a1a2e}
 .legend-toggles{display:flex;gap:12px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
 .legend-toggles label{font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
 .legend-toggles input{accent-color:#e8313e}
-.chart-wrapper{position:relative;width:100%;max-width:100%;overflow:hidden}
-.chart-wrapper canvas{width:100%!important;height:auto!important;max-height:420px}
+.chart-wrapper{position:relative;width:100%;height:420px;overflow:hidden}
 @media(max-width:768px){.container{padding:12px 10px;border-radius:10px}h1{font-size:17px}.stat-card{min-width:70px;padding:8px 10px}.stat-card .value{font-size:16px}.controls button{padding:5px 12px;font-size:11px}.date-query{padding:10px 12px;gap:6px}}
 </style>
 </head>
