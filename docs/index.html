@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汇率看板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.container{max-width:600px;width:100%;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.15);padding:40px 32px;text-align:center}
+h1{font-size:26px;color:#1a1a2e;margin-bottom:6px}
+.sub{font-size:13px;color:#888;margin-bottom:32px}
+.cards{display:flex;flex-direction:column;gap:16px}
+.card{display:block;padding:24px;border-radius:14px;text-decoration:none;text-align:left;transition:transform .2s,box-shadow .2s;color:#fff}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.15)}
+.card-safe{background:linear-gradient(135deg,#1764d9,#4a90e2)}
+.card-citic{background:linear-gradient(135deg,#e8313e,#f06b75)}
+.card-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:12px;opacity:.85;margin-bottom:12px}
+.card-stats{display:flex;gap:20px;font-size:13px;opacity:.9}
+.card-stats span{display:block}
+.card-stats strong{font-size:16px}
+.footer{margin-top:32px;font-size:11px;color:#aaa}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>汇率看板</h1>
+<div class="sub">USD/CNY 实时数据 · GitHub Pages 自动更新</div>
+
+<div class="cards">
+<a class="card card-safe" href="fx_chart.html">
+  <div class="card-title">美元 / 人民币中间价走势</div>
+  <div class="card-desc">数据来源：国家外汇管理局（SAFE）</div>
+  <div class="card-stats">
+    <span>记录数<br><strong>348</strong></span>
+    <span>最新日期<br><strong>2026-06-12</strong></span>
+  </div>
+</a>
+
+<a class="card card-citic" href="citic_fx_chart.html">
+  <div class="card-title">中信银行 结汇价 OHLC</div>
+  <div class="card-desc">数据来源：中信银行官方外汇牌价</div>
+  <div class="card-stats">
+    <span>记录数<br><strong>161</strong></span>
+    <span>最新日期<br><strong>2026-06-12</strong></span>
+  </div>
+</a>
+</div>
+
+<div class="footer">
+  每天北京时间 11:00 自动更新 · 更新于 2026-06-14 09:51
+</div>
+</div>
+</body>
+</html>

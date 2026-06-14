@@ -1,0 +1,42 @@
+name: 汇率数据每日同步
+
+on:
+  schedule:
+    # 每天 UTC 03:00 = 北京时间 11:00
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # 手动触发（GitHub Actions 页面点 Run workflow）
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 运行同步脚本
+        env:
+          SAFE_WEBHOOK: ${{ secrets.SAFE_WEBHOOK }}
+          CITIC_WEBHOOK: ${{ secrets.CITIC_WEBHOOK }}
+        run: python sync_all.py
+
+      - name: 提交变更并推送
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ docs/
+          if git diff --cached --quiet; then
+            echo "没有变更，跳过提交"
+          else
+            git commit -m "📊 汇率数据自动更新 [$(date +'%Y-%m-%d')]"
+            git push
+          fi

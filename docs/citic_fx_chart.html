@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>中信银行 USD/CNY 结汇价 OHLC 走势</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;padding:10px;min-height:100vh}
+.container{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+h1{font-size:20px;text-align:center;margin-bottom:4px;color:#1a1a2e}
+.subtitle{text-align:center;font-size:12px;color:#888;margin-bottom:14px}
+.back-link{display:inline-block;margin-bottom:12px;font-size:13px;color:#1764d9;text-decoration:none}
+.back-link:hover{text-decoration:underline}
+.stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.stat-card{flex:1;min-width:100px;max-width:180px;padding:12px 14px;border-radius:10px;text-align:center;background:linear-gradient(135deg,#f8f9fc,#eef0f6);border:1px solid #e0e3ea}
+.stat-card .label{font-size:11px;color:#888;margin-bottom:4px}
+.stat-card .value{font-size:20px;font-weight:700;color:#1764d9}
+.stat-card.down .value{color:#2ecc71}
+.stat-card.up .value{color:#e85d5d}
+.date-query{margin-bottom:12px;padding:14px 18px;background:linear-gradient(135deg,#f0f4ff 0%,#f7f8fa 100%);border-radius:10px;border:1px solid #dce6fb;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.date-query label{font-size:13px;font-weight:600;color:#333;white-space:nowrap}
+.date-query input[type="date"]{padding:7px 12px;border:1px solid #d0d5dd;border-radius:8px;font-size:13px;color:#333;background:#fff;outline:none}
+.date-query input[type="date"]:focus{border-color:#1764d9;box-shadow:0 0 0 3px rgba(23,100,217,.1)}
+.date-query .btn-query{padding:7px 18px;border:none;border-radius:8px;background:#e8313e;color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.date-query .btn-query:hover{background:#d3090f}
+.date-query .query-result{font-size:13px;margin-left:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-query .query-result .rate-val{font-size:20px;font-weight:700;color:#e8313e}
+.date-query .query-result .no-data{font-size:12px;color:#999}
+.date-query .verify-link{font-size:11px;color:#e8313e;text-decoration:none;border-bottom:1px dashed #e8313e;white-space:nowrap}
+.ohlc-mini{display:flex;gap:6px;flex-wrap:wrap}
+.ohlc-mini span{padding:2px 8px;border-radius:4px;font-size:12px;background:#f0f0f0;white-space:nowrap}
+.ohlc-mini .o{color:#2196F3}.ohlc-mini .h{color:#e85d5d}.ohlc-mini .l{color:#2ecc71}.ohlc-mini .c{color:#FF9800}
+.controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.controls button{padding:6px 16px;border:1px solid #d0d5dd;border-radius:18px;background:#fff;color:#555;font-size:12px;cursor:pointer;transition:all .2s}
+.controls button:hover{border-color:#e8313e;color:#e8313e}
+.controls button.active{background:#e8313e;color:#fff;border-color:#e8313e}
+.slider-wrap{margin:0 10px 18px 10px;position:relative;user-select:none;-webkit-user-select:none}
+.slider-labels{display:flex;justify-content:space-between;margin-bottom:6px;font-size:11px;color:#888}
+.slider-labels .range-indicator{font-weight:600;color:#e8313e}
+.slider-container{position:relative;height:36px}
+.slider-container input[type="range"]{position:absolute;width:100%;height:6px;top:15px;left:0;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;z-index:2}
+.slider-container input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#e8313e;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;pointer-events:all;transition:transform .15s}
+.slider-container input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.slider-container input[type="range"]::-webkit-slider-thumb:active{transform:scale(1.25)}
+.track-bg{position:absolute;left:0;right:0;top:15px;height:6px;background:#e0e3ea;border-radius:3px;z-index:1}
+.track-active{position:absolute;top:15px;height:6px;background:#e8313e;border-radius:3px;z-index:1;transition:left .1s,right .1s}
+.legend-toggles{display:flex;gap:12px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.legend-toggles label{font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
+.legend-toggles input{accent-color:#e8313e}
+.chart-wrapper{position:relative;width:100%;max-width:100%;overflow:hidden}
+.chart-wrapper canvas{width:100%!important;height:auto!important;max-height:420px}
+@media(max-width:768px){.container{padding:12px 10px;border-radius:10px}h1{font-size:17px}.stat-card{min-width:70px;padding:8px 10px}.stat-card .value{font-size:16px}.controls button{padding:5px 12px;font-size:11px}.date-query{padding:10px 12px;gap:6px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="index.html">← 返回首页</a>
+  <h1>中信银行 美元结汇价 OHLC</h1>
+  <div class="subtitle">数据来源：中信银行官方外汇历史牌价 &middot; 客户结汇价(cstSellPrice) &middot; 1 USD/CNY</div>
+  <div class="stats" id="stats"></div>
+  <div class="date-query">
+    <label for="date-picker">查询某一日：</label>
+    <input type="date" id="date-picker">
+    <button class="btn-query" onclick="queryDate()">查询</button>
+    <span class="query-result" id="query-result"></span>
+  </div>
+  <div class="legend-toggles">
+    <label><input type="checkbox" checked onchange="toggleLine(0,this.checked)"> <span style="color:#2196F3;font-weight:600">开盘价</span></label>
+    <label><input type="checkbox" checked onchange="toggleLine(1,this.checked)"> <span style="color:#e85d5d;font-weight:600">最高价</span></label>
+    <label><input type="checkbox" checked onchange="toggleLine(2,this.checked)"> <span style="color:#2ecc71;font-weight:600">最低价</span></label>
+    <label><input type="checkbox" checked onchange="toggleLine(3,this.checked)"> <span style="color:#FF9800;font-weight:600">收盘价</span></label>
+  </div>
+  <div class="controls" id="controls"></div>
+  <div class="slider-wrap">
+    <div class="slider-labels"><span id="slider-range-text">显示全部数据</span></div>
+    <div class="slider-container" id="slider-container">
+      <div class="track-bg"></div>
+      <div class="track-active" id="track-active"></div>
+      <input type="range" id="slider-start" min="0" max="160" value="0" step="1">
+      <input type="range" id="slider-end" min="0" max="160" value="160" step="1">
+    </div>
+  </div>
+  <div class="chart-wrapper"><canvas id="chart"></canvas></div>
+</div>
+
+<script>
+const allDates = ["2026-01-01", "2026-01-02", "2026-01-03", "2026-01-04", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-10", "2026-01-11", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-17", "2026-01-18", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-24", "2026-01-25", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-01-31", "2026-02-01", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-14", "2026-02-15", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-21", "2026-02-22", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-07", "2026-03-08", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12"];
+const allOpens = [6.9755, 6.975, 6.975, 6.975, 6.975, 6.9778, 6.9713, 6.9778, 6.9726, 6.9656, 6.9657, 6.9657, 6.9613, 6.9644, 6.9614, 6.9555, 6.9574, 6.9566, 6.9566, 6.9518, 6.9483, 6.9522, 6.9595, 6.9514, 6.9515, 6.9515, 6.9425, 6.943, 6.9348, 6.9424, 6.9394, 6.9441, 6.9441, 6.9348, 6.9262, 6.9307, 6.9273, 6.9243, 6.9229, 6.9229, 6.9092, 6.8993, 6.9007, 6.8929, 6.8926, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.869, 6.8509, 6.8331, 6.8504, 6.8487, 6.8487, 6.892, 6.9054, 6.8844, 6.8965, 6.8805, 6.8901, 6.8901, 6.8942, 6.8507, 6.8564, 6.8693, 6.8881, 6.8907, 6.8907, 6.8799, 6.8737, 6.8732, 6.8859, 6.8894, 6.8904, 6.8904, 6.8752, 6.8796, 6.889, 6.9014, 6.8985, 6.8974, 6.8974, 6.9001, 6.886, 6.8616, 6.8774, 6.8709, 6.8724, 6.8724, 6.8724, 6.8499, 6.8173, 6.8204, 6.817, 6.8168, 6.8168, 6.8188, 6.8042, 6.8066, 6.8102, 6.8054, 6.8053, 6.8053, 6.8058, 6.8103, 6.816, 6.8166, 6.8199, 6.8197, 6.8197, 6.8139, 6.825, 6.8289, 6.8158, 6.8185, 6.8185, 6.8185, 6.8105, 6.8105, 6.8001, 6.7909, 6.789, 6.7885, 6.7885, 6.7833, 6.784, 6.7789, 6.7758, 6.7992, 6.8, 6.8029, 6.7855, 6.7934, 6.7828, 6.783, 6.783, 6.7708, 6.7746, 6.7677, 6.765, 6.7547, 6.7545, 6.7545, 6.7541, 6.7507, 6.7636, 6.7618, 6.7736, 6.7763, 6.7763, 6.7716, 6.7609, 6.763, 6.7649];
+const allHighs = [6.9756, 6.975, 6.975, 6.975, 6.9777, 6.9784, 6.9817, 6.9857, 6.9733, 6.9659, 6.9657, 6.9657, 6.9664, 6.9683, 6.9637, 6.9589, 6.958, 6.9566, 6.9566, 6.9518, 6.9558, 6.9658, 6.9596, 6.9522, 6.9515, 6.9515, 6.9477, 6.943, 6.9428, 6.9424, 6.945, 6.9441, 6.9441, 6.9348, 6.9319, 6.9382, 6.9311, 6.9245, 6.9229, 6.9237, 6.9092, 6.9054, 6.9008, 6.906, 6.8928, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8696, 6.8509, 6.8564, 6.8509, 6.8487, 6.892, 6.9124, 6.916, 6.8979, 6.9014, 6.8901, 6.8901, 6.9144, 6.8942, 6.8606, 6.8707, 6.8914, 6.8914, 6.8907, 6.8929, 6.8799, 6.8757, 6.8921, 6.8913, 6.8917, 6.8904, 6.9009, 6.8844, 6.8916, 6.9014, 6.9053, 6.9004, 6.8974, 6.9097, 6.9014, 6.886, 6.8885, 6.8774, 6.8724, 6.8724, 6.8724, 6.8724, 6.8499, 6.8307, 6.8236, 6.817, 6.8168, 6.8249, 6.8188, 6.8097, 6.8123, 6.8177, 6.8054, 6.8053, 6.8112, 6.8102, 6.8185, 6.825, 6.828, 6.8207, 6.8197, 6.8198, 6.828, 6.8313, 6.8342, 6.8208, 6.8185, 6.8185, 6.8185, 6.8105, 6.8115, 6.8005, 6.7962, 6.789, 6.7885, 6.7885, 6.7867, 6.784, 6.7792, 6.7993, 6.8, 6.8, 6.8059, 6.7961, 6.7934, 6.7835, 6.783, 6.783, 6.7772, 6.7746, 6.7772, 6.765, 6.7548, 6.7545, 6.7582, 6.7555, 6.7636, 6.7686, 6.7745, 6.7763, 6.7763, 6.7763, 6.7717, 6.7684, 6.7687, 6.7649];
+const allLows = [6.975, 6.975, 6.975, 6.975, 6.9662, 6.9675, 6.968, 6.9697, 6.965, 6.9656, 6.9657, 6.9613, 6.9611, 6.9604, 6.9555, 6.951, 6.9565, 6.9566, 6.9512, 6.9393, 6.9464, 6.9513, 6.9498, 6.9514, 6.9515, 6.9425, 6.9421, 6.9282, 6.9284, 6.9347, 6.9394, 6.9441, 6.9312, 6.9244, 6.9229, 6.9271, 6.9243, 6.9229, 6.9229, 6.9092, 6.8966, 6.8969, 6.8922, 6.8887, 6.8859, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8655, 6.8514, 6.8216, 6.8331, 6.8487, 6.8487, 6.8487, 6.8584, 6.8804, 6.8664, 6.8788, 6.8771, 6.8901, 6.8901, 6.8507, 6.8499, 6.8544, 6.8538, 6.8881, 6.8907, 6.8733, 6.8686, 6.8597, 6.8709, 6.87, 6.8894, 6.8904, 6.8638, 6.8646, 6.872, 6.8888, 6.8962, 6.8974, 6.8974, 6.8935, 6.8807, 6.8601, 6.8596, 6.8651, 6.8702, 6.8724, 6.8724, 6.8442, 6.8131, 6.8173, 6.8144, 6.8168, 6.8168, 6.8168, 6.8041, 6.8035, 6.8058, 6.7985, 6.8053, 6.8053, 6.8053, 6.8029, 6.809, 6.8084, 6.8166, 6.8197, 6.8197, 6.81, 6.8139, 6.8216, 6.814, 6.8158, 6.8185, 6.8185, 6.8185, 6.8105, 6.7995, 6.7884, 6.789, 6.7885, 6.7885, 6.7833, 6.7802, 6.7788, 6.7692, 6.7755, 6.7992, 6.8, 6.7854, 6.7807, 6.7802, 6.782, 6.783, 6.7693, 6.769, 6.7667, 6.7625, 6.7544, 6.7545, 6.7545, 6.7533, 6.7499, 6.7504, 6.7598, 6.7531, 6.7736, 6.7763, 6.7682, 6.7574, 6.7603, 6.7619, 6.7492];
+const allCloses = [6.975, 6.975, 6.975, 6.975, 6.9777, 6.9713, 6.9778, 6.9726, 6.9656, 6.9657, 6.9657, 6.9613, 6.9644, 6.9614, 6.9555, 6.9574, 6.9566, 6.9566, 6.9518, 6.9483, 6.952, 6.9595, 6.9514, 6.9515, 6.9515, 6.9425, 6.943, 6.9348, 6.9418, 6.9393, 6.9441, 6.9441, 6.9337, 6.9262, 6.9304, 6.9279, 6.9243, 6.9229, 6.9229, 6.9092, 6.8993, 6.9007, 6.8929, 6.8921, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.8917, 6.869, 6.8514, 6.8329, 6.8504, 6.8487, 6.8487, 6.892, 6.9064, 6.8844, 6.8965, 6.8805, 6.8901, 6.8901, 6.8949, 6.8507, 6.8564, 6.868, 6.888, 6.8907, 6.8907, 6.8795, 6.8738, 6.8732, 6.8861, 6.8894, 6.8904, 6.8904, 6.8744, 6.8792, 6.889, 6.9014, 6.8975, 6.8974, 6.8974, 6.9001, 6.8853, 6.8616, 6.876, 6.8704, 6.8724, 6.8724, 6.8724, 6.8505, 6.8173, 6.8215, 6.817, 6.8168, 6.8168, 6.8188, 6.8042, 6.8066, 6.8102, 6.8055, 6.8053, 6.8053, 6.8057, 6.8102, 6.8159, 6.8166, 6.82, 6.8197, 6.8197, 6.8139, 6.825, 6.8289, 6.8151, 6.8185, 6.8185, 6.8185, 6.8185, 6.8105, 6.8, 6.7909, 6.789, 6.7885, 6.7885, 6.7833, 6.784, 6.7789, 6.7758, 6.7992, 6.8, 6.8, 6.7855, 6.7938, 6.7828, 6.783, 6.783, 6.7708, 6.7746, 6.7677, 6.765, 6.7547, 6.7545, 6.7545, 6.7541, 6.7507, 6.7636, 6.7617, 6.7745, 6.7763, 6.7763, 6.7711, 6.7604, 6.763, 6.7649, 6.7505];
+const allCounts = [10, 2, 2, 4, 174, 198, 179, 188, 183, 19, 2, 171, 175, 185, 186, 189, 20, 2, 170, 186, 190, 192, 202, 26, 2, 176, 188, 196, 195, 193, 34, 2, 176, 200, 202, 203, 189, 25, 2, 172, 193, 193, 183, 198, 21, 2, 2, 2, 2, 2, 2, 2, 2, 2, 171, 187, 202, 200, 28, 2, 177, 198, 197, 208, 200, 34, 2, 177, 193, 205, 207, 194, 34, 2, 174, 200, 194, 192, 197, 24, 2, 175, 199, 198, 194, 191, 29, 2, 164, 189, 203, 200, 196, 24, 4, 2, 174, 201, 196, 200, 10, 2, 173, 189, 187, 194, 189, 22, 2, 169, 183, 206, 206, 198, 21, 2, 172, 190, 189, 192, 25, 2, 2, 3, 2, 166, 180, 195, 27, 2, 167, 192, 183, 181, 194, 25, 2, 188, 199, 193, 28, 2, 170, 190, 199, 193, 183, 22, 2, 165, 192, 202, 202, 195, 30, 2, 179, 186, 202, 187, 192];
+
+const dateIndexMap = {};
+for (let i = 0; i < allDates.length; i++) { dateIndexMap[allDates[i]] = i; }
+
+let chart = null;
+
+function formatRate(v) { return v.toFixed(4); }
+
+function getFilteredData(startIdx, endIdx) {
+  const slice = (arr) => arr.slice(startIdx, endIdx + 1);
+  return { dates: slice(allDates), opens: slice(allOpens), highs: slice(allHighs), lows: slice(allLows), closes: slice(allCloses), counts: slice(allCounts) };
+}
+
+function updateStats(startIdx, endIdx) {
+  const closesSub = allCloses.slice(startIdx, endIdx + 1);
+  const highsSub = allHighs.slice(startIdx, endIdx + 1);
+  const lowsSub = allLows.slice(startIdx, endIdx + 1);
+  const latest = closesSub[closesSub.length - 1];
+  const prev = closesSub.length > 1 ? closesSub[closesSub.length - 2] : null;
+  const delta = prev !== null ? latest - prev : 0;
+  const max = Math.max(...highsSub);
+  const min = Math.min(...lowsSub);
+  const range = max - min;
+  const avg = closesSub.reduce((a,b) => a+b, 0) / closesSub.length;
+  const upClass = delta >= 0 ? 'up' : 'down';
+  const sign = delta >= 0 ? '+' : '';
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="label">最新收盘</div><div class="value">${{formatRate(latest)}}</div></div>
+    <div class="stat-card ${{upClass}}"><div class="label">较前日</div><div class="value">${{sign}}${{delta.toFixed(4)}}</div></div>
+    <div class="stat-card"><div class="label">区间最高</div><div class="value">${{formatRate(max)}}</div></div>
+    <div class="stat-card"><div class="label">区间最低</div><div class="value">${{formatRate(min)}}</div></div>
+    <div class="stat-card"><div class="label">波动幅度</div><div class="value">${{formatRate(range)}}</div></div>
+    <div class="stat-card"><div class="label">日均值</div><div class="value">${{formatRate(avg)}}</div></div>`;
+}
+
+function updateChart(startIdx, endIdx) {
+  const d = getFilteredData(startIdx, endIdx);
+  if (chart) {
+    chart.data.labels = d.dates;
+    chart.data.datasets[0].data = d.opens;
+    chart.data.datasets[1].data = d.highs;
+    chart.data.datasets[2].data = d.lows;
+    chart.data.datasets[3].data = d.closes;
+    chart.update('none');
+  }
+  updateStats(startIdx, endIdx);
+}
+
+function initChart() {
+  const d = getFilteredData(0, allDates.length - 1);
+  const ctx = document.getElementById('chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.dates,
+      datasets: [
+        { label: '开盘价', data: d.opens, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.05)', borderWidth: 1.5, tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderDash: [4,2] },
+        { label: '最高价', data: d.highs, borderColor: '#e85d5d', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderDash: [2,2] },
+        { label: '最低价', data: d.lows, borderColor: '#2ecc71', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderDash: [2,2] },
+        { label: '收盘价', data: d.closes, borderColor: '#FF9800', backgroundColor: 'rgba(255,152,0,0.03)', borderWidth: 2, tension: 0.3, pointRadius: 0, pointHoverRadius: 5 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true, aspectRatio: 2.5,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { title: function(items) { return '日期: ' + items[0].label; }, afterBody: function(items) { const idx = dateIndexMap[items[0].label]; if (idx !== undefined && allCounts[idx]) return '当日报价: ' + allCounts[idx] + ' 次'; return ''; } } }
+      },
+      scales: { x: { ticks: { maxTicksLimit: 15, maxRotation: 45, font: { size: 10 } } }, y: { ticks: { callback: function(v) { return v.toFixed(4); }, font: { size: 10 } } } }
+    }
+  });
+}
+
+function toggleLine(idx, visible) { if (chart) { chart.setDatasetVisibility(idx, visible); chart.update('none'); } }
+
+const presets = [
+  { label: '全部', days: 99999 }, { label: '近7天', days: 7 }, { label: '近30天', days: 30 }, { label: '近90天', days: 90 }, { label: '近180天', days: 180 },
+  { label: '1月', month: 1 }, { label: '2月', month: 2 }, { label: '3月', month: 3 }, { label: '4月', month: 4 }, { label: '5月', month: 5 }, { label: '6月', month: 6 }
+];
+
+function applyPreset(preset) {
+  const total = allDates.length;
+  let startIdx, endIdx;
+  if (preset.month) {
+    const targetMonth = String(preset.month).padStart(2, '0');
+    startIdx = allDates.findIndex(d => d.startsWith('2026-' + targetMonth));
+    endIdx = allDates.findLastIndex(d => d.startsWith('2026-' + targetMonth));
+    if (startIdx === -1) startIdx = 0;
+    if (endIdx === -1) endIdx = total - 1;
+  } else if (preset.days >= 99999) { startIdx = 0; endIdx = total - 1; }
+  else { endIdx = total - 1; startIdx = Math.max(0, endIdx - preset.days + 1); }
+  applyFilter(startIdx, endIdx);
+  highlightPresetButton(preset);
+}
+
+function applyFilter(startIdx, endIdx) { updateChart(startIdx, endIdx); updateSliders(startIdx, endIdx); }
+
+function highlightPresetButton(preset) {
+  document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+  const key = preset.month ? ('month_' + preset.month) : ('days_' + (preset.days || 99999));
+  const target = document.querySelector('#controls button[data-key="' + key + '"]');
+  if (target) target.classList.add('active');
+}
+
+function resetPresetButtons() { document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active')); }
+
+const sliderStart = document.getElementById('slider-start');
+const sliderEnd = document.getElementById('slider-end');
+const trackActive = document.getElementById('track-active');
+const sliderRangeText = document.getElementById('slider-range-text');
+const totalCount = allDates.length;
+
+function updateSliders(startIdx, endIdx) {
+  sliderStart.value = startIdx; sliderEnd.value = endIdx;
+  const leftPct = (startIdx / (totalCount - 1)) * 100;
+  const rightPct = ((totalCount - 1 - endIdx) / (totalCount - 1)) * 100;
+  trackActive.style.left = leftPct + '%'; trackActive.style.right = rightPct + '%';
+  sliderRangeText.innerHTML = '<span class="range-indicator">' + allDates[startIdx] + '</span> ~ <span class="range-indicator">' + allDates[endIdx] + '</span> (' + (endIdx - startIdx + 1) + '天)';
+}
+
+sliderStart.addEventListener('input', function() {
+  let s = parseInt(this.value); let e = parseInt(sliderEnd.value);
+  if (s >= e) { this.value = e - 1; s = e - 1; if (s < 0) { this.value = 0; s = 0; } }
+  applyFilter(s, e); resetPresetButtons();
+});
+
+sliderEnd.addEventListener('input', function() {
+  let e = parseInt(this.value); let s = parseInt(sliderStart.value);
+  if (e <= s) { this.value = s + 1; e = s + 1; if (e >= totalCount) { this.value = totalCount - 1; e = totalCount - 1; } }
+  applyFilter(s, e); resetPresetButtons();
+});
+
+const datePicker = document.getElementById('date-picker');
+datePicker.setAttribute('min', allDates[0]);
+datePicker.setAttribute('max', allDates[allDates.length - 1]);
+datePicker.value = allDates[allDates.length - 1];
+
+function queryDate() {
+  const date = datePicker.value;
+  const idx = dateIndexMap[date];
+  const resultEl = document.getElementById('query-result');
+  if (idx !== undefined) {
+    const openVal = allOpens[idx], highVal = allHighs[idx], lowVal = allLows[idx], closeVal = allCloses[idx], countVal = allCounts[idx];
+    const prevClose = idx > 0 ? allCloses[idx - 1] : null;
+    const delta = prevClose !== null ? closeVal - prevClose : 0;
+    const color = delta >= 0 ? '#e85d5d' : '#2ecc71', sign = delta >= 0 ? '+' : '';
+    resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="rate-val">${{formatRate(closeVal)}}</span>
+      <span style="font-size:11px;color:${{color}}">(${{sign}}${{delta.toFixed(4)}})</span>
+      <span style="font-size:10px;color:#999">${{countVal}}次报价</span>
+      <a class="verify-link" href="https://www.citicbank.com/common/financialnews/news/202408/t20240829_3540192.html" target="_blank" rel="noopener">&#x1f517; 中信官网核实</a></div>
+      <div class="ohlc-mini"><span class="o">开 ${{formatRate(openVal)}}</span><span class="h">高 ${{formatRate(highVal)}}</span><span class="l">低 ${{formatRate(lowVal)}}</span><span class="c">收 ${{formatRate(closeVal)}}</span></div>`;
+    highlightDate(idx);
+  } else {
+    resultEl.innerHTML = '<span class="no-data">该日期无数据</span> <a class="verify-link" href="https://www.citicbank.com/common/financialnews/news/202408/t20240829_3540192.html" target="_blank" rel="noopener">&#x1f517; 中信官网查询</a>';
+  }
+}
+
+function highlightDate(idx) {
+  if (!chart) return;
+  const nums = new Array(allDates.length).fill(0); nums[idx] = 6;
+  const bg = new Array(allDates.length).fill('transparent'); bg[idx] = '#e8313e';
+  chart.data.datasets.forEach(ds => { ds.pointRadius = nums; ds.pointBackgroundColor = bg; ds.pointBorderColor = bg; });
+  chart.update('none');
+  clearTimeout(window._hlTimer);
+  window._hlTimer = setTimeout(() => { chart.data.datasets.forEach(ds => { ds.pointRadius = 0; ds.pointBackgroundColor = '#e8313e'; }); chart.update('none'); }, 3000);
+}
+
+datePicker.addEventListener('keydown', function(e) { if (e.key === 'Enter') queryDate(); });
+
+const controlsDiv = document.getElementById('controls');
+presets.forEach(p => {
+  const key = p.month ? ('month_' + p.month) : ('days_' + (p.days || 99999));
+  const btn = document.createElement('button');
+  btn.textContent = p.label; btn.setAttribute('data-key', key);
+  btn.addEventListener('click', () => applyPreset(p));
+  controlsDiv.appendChild(btn);
+});
+
+initChart();
+updateStats(0, allDates.length - 1);
+updateSliders(0, allDates.length - 1);
+applyPreset({ days: 99999 });
+</script>
+</body>
+</html>
