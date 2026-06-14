@@ -118,12 +118,12 @@ function updateStats(startIdx, endIdx) {
   const upClass = delta >= 0 ? 'up' : 'down';
   const sign = delta >= 0 ? '+' : '';
   document.getElementById('stats').innerHTML = `
-    <div class="stat-card"><div class="label">最新收盘</div><div class="value">${{formatRate(latest)}}</div></div>
-    <div class="stat-card ${{upClass}}"><div class="label">较前日</div><div class="value">${{sign}}${{delta.toFixed(4)}}</div></div>
-    <div class="stat-card"><div class="label">区间最高</div><div class="value">${{formatRate(max)}}</div></div>
-    <div class="stat-card"><div class="label">区间最低</div><div class="value">${{formatRate(min)}}</div></div>
-    <div class="stat-card"><div class="label">波动幅度</div><div class="value">${{formatRate(range)}}</div></div>
-    <div class="stat-card"><div class="label">日均值</div><div class="value">${{formatRate(avg)}}</div></div>`;
+    <div class="stat-card"><div class="label">最新收盘</div><div class="value">${formatRate(latest)}</div></div>
+    <div class="stat-card ${upClass}"><div class="label">较前日</div><div class="value">${sign}${delta.toFixed(4)}</div></div>
+    <div class="stat-card"><div class="label">区间最高</div><div class="value">${formatRate(max)}</div></div>
+    <div class="stat-card"><div class="label">区间最低</div><div class="value">${formatRate(min)}</div></div>
+    <div class="stat-card"><div class="label">波动幅度</div><div class="value">${formatRate(range)}</div></div>
+    <div class="stat-card"><div class="label">日均值</div><div class="value">${formatRate(avg)}</div></div>`;
 }
 
 function updateChart(startIdx, endIdx) {
@@ -239,11 +239,11 @@ function queryDate() {
     const delta = prevClose !== null ? closeVal - prevClose : 0;
     const color = delta >= 0 ? '#e85d5d' : '#2ecc71', sign = delta >= 0 ? '+' : '';
     resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <span class="rate-val">${{formatRate(closeVal)}}</span>
-      <span style="font-size:11px;color:${{color}}">(${{sign}}${{delta.toFixed(4)}})</span>
-      <span style="font-size:10px;color:#999">${{countVal}}次报价</span>
+      <span class="rate-val">${formatRate(closeVal)}</span>
+      <span style="font-size:11px;color:${color}">(${sign}${delta.toFixed(4)})</span>
+      <span style="font-size:10px;color:#999">${countVal}次报价</span>
       <a class="verify-link" href="https://www.citicbank.com/common/financialnews/news/202408/t20240829_3540192.html" target="_blank" rel="noopener">&#x1f517; 中信官网核实</a></div>
-      <div class="ohlc-mini"><span class="o">开 ${{formatRate(openVal)}}</span><span class="h">高 ${{formatRate(highVal)}}</span><span class="l">低 ${{formatRate(lowVal)}}</span><span class="c">收 ${{formatRate(closeVal)}}</span></div>`;
+      <div class="ohlc-mini"><span class="o">开 ${formatRate(openVal)}</span><span class="h">高 ${formatRate(highVal)}</span><span class="l">低 ${formatRate(lowVal)}</span><span class="c">收 ${formatRate(closeVal)}</span></div>`;
     highlightDate(idx);
   } else {
     resultEl.innerHTML = '<span class="no-data">该日期无数据</span> <a class="verify-link" href="https://www.citicbank.com/common/financialnews/news/202408/t20240829_3540192.html" target="_blank" rel="noopener">&#x1f517; 中信官网查询</a>';
