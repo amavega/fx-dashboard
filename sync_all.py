@@ -58,11 +58,9 @@ SAFE_SOURCE_URL = "https://www.safe.gov.cn/AppStructured/hlw/RMBQuery.do"
 SAFE_VERIFY_URL = "https://www.safe.gov.cn/safe/rmbhlzjj/index.html"
 SAFE_FIELD_DATE = "fhYWZY"
 SAFE_FIELD_RATE = "fJL49j"
-SAFE_WEBHOOK = os.environ.get(
-    "SAFE_WEBHOOK",
-    "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/webhook"
-    "?key=6sqnAG2N7o0Q5MY4bvhTH6Wa1VzpKU6zdhxiJUWHeUGFtItDcwBK4z9isIogk72XmjVkJsBBQ55Du2ID99ahp34QZEeVSIz3KJkAEIpsQe8r",
-)
+SAFE_WEBHOOK = os.environ.get("SAFE_WEBHOOK", "")
+if not SAFE_WEBHOOK:
+    print("⚠️  警告: SAFE_WEBHOOK 未配置，跳过企微通知")
 
 # --- CITIC 中信银行 ---
 CITIC_API = "https://etrade.citicbank.com/portalweb/cms/getForeignExchHis.htm"
@@ -77,12 +75,9 @@ CITIC_FIELD_OPEN = "fcHWoQ"
 CITIC_FIELD_CLOSE = "fUtTQV"
 CITIC_FIELD_HIGH = "fWakzs"
 CITIC_FIELD_LOW = "fNIMnH"
-CITIC_WEBHOOK = os.environ.get(
-    "CITIC_WEBHOOK",
-    "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/webhook"
-    "?key=4ap0MTeSUEiz3uO1AhptZLovq3w41807WDaUuek5ngsBhG5oRAXpkDQ54wdT1CdK"
-    "GLYbbW4qUs5Wr5ufK6eJrpSA0lCh7zx2OoqDEzJDrqHU",
-)
+CITIC_WEBHOOK = os.environ.get("CITIC_WEBHOOK", "")
+if not CITIC_WEBHOOK:
+    print("⚠️  警告: CITIC_WEBHOOK 未配置，跳过企微通知")
 
 DATA_START_YEAR = 2025
 
@@ -175,6 +170,9 @@ def safe_fetch_data(start_date, end_date):
 
 
 def safe_webhook_post(date_str, rate):
+    if not SAFE_WEBHOOK:
+        log("  ⚠️  SAFE_WEBHOOK 未配置，跳过企微通知")
+        return True  # 返回 True 避免影响主流程
     payload = {"add_records": [{"values": {
         SAFE_FIELD_DATE: safe_date_to_timestamp(date_str),
         SAFE_FIELD_RATE: rate,
@@ -363,6 +361,9 @@ def citic_collect_ohlc(begin_date, end_date):
 def citic_webhook_post(ohlc_list):
     if not ohlc_list:
         return 0
+    if not CITIC_WEBHOOK:
+        log("  ⚠️  CITIC_WEBHOOK 未配置，跳过企微通知")
+        return len(ohlc_list)  # 返回列表长度，避免影响主流程
     payload_records = []
     for rec in ohlc_list:
         payload_records.append({"values": {
